@@ -7,6 +7,7 @@ import pandas
 import os
 import csv
 
+
 def summarise_article(article_file, storyname):
 
     with open(article_file, 'r') as json_data:
@@ -27,6 +28,20 @@ def summarise_article(article_file, storyname):
         return article
 
 
+def summarise_reaction(article, reaction_file):
+
+    reaction = pandas.read_csv(reaction_file)
+    types = reaction.type.value_counts()
+    
+    article['reaction_like'] = types.get('LIKE') if types.get('LIKE') is not None else 0
+    article['reaction_sad'] = types.get('SAD') if types.get('SAD') is not None else 0
+    article['reaction_wow'] = types.get('WOW') if types.get('WOW') is not None else 0
+    article['reaction_angry'] = types.get('ANGRY') if types.get('ANGRY') is not None else 0
+    article['reaction_haha'] = types.get('HAHA') if types.get('HAHA') is not None else 0
+    
+    return article
+
+
 def summarise_articles(dirname, storyname):
 
     files = os.listdir(dirname)
@@ -34,12 +49,20 @@ def summarise_articles(dirname, storyname):
     summaries = []
 
     for f in files:
+
         if '_article.json' in f:
-            fpath = '{0}{1}{2}'.format(dirname, os.path.sep, f)
-            a = summarise_article(fpath, storyname)
-            summaries.append(a)
+
+            article_path = '{0}{1}{2}'.format(dirname, os.path.sep, f)
+            reaction_path = '{0}{1}{2}_reactions.csv'.format(
+                dirname, os.path.sep, f[:-len('_article.json')])
+            
+            article = summarise_article(article_path, storyname)
+            article = summarise_reaction(article, reaction_path)
+            
+            summaries.append(article)
 
     return summaries
+
 
 def summarise_all_articles():
 
@@ -66,9 +89,9 @@ def save_articles(articles, csv_name):
 
     with open(csv_name, 'w', newline='') as csv_file:
     
-
         writer = csv.DictWriter(csv_file, fieldnames=articles[0].keys())
         writer.writeheader()
         
         for a in articles:
             writer.writerow(a)
+
