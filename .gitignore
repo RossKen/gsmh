@@ -1,0 +1,11 @@
+# Directories
+__pycache__
+alldata
+docs
+web
+
+# Files
+.DS_Store
+scrapbook.py
+tweets.py
+template.py
